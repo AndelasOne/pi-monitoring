@@ -1,0 +1,123 @@
+version: "3"
+# volumes:
+#   prometheus_data: {}
+
+services:
+  prometheus:
+    image: evns/rpi-prometheus #ajeetraina/prometheus-armv7
+    container_name: prometheus_monitoring
+    restart: always
+    volumes:
+      - "./config:/etc/prometheus/"
+      - "./prometheus_data:/prometheus/data"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      # - '--web.enable-admin-api' # admin api used to delete time series
+      - "--web.enable-lifecycle"
+    depends_on:
+      - alertmanager
+    expose:
+      - "9090"
+    ports:
+      - "9090:9090"
+    networks:
+      - prometheus_network
+
+  alertmanager:
+    image: prom/alertmanager
+    container_name: altert_manager
+    volumes:
+      - ./config:/prometheus
+      - ./alertmanager_data:/data
+    command:
+      # - '--config.file=/prometheus/email-alertmanager.yml'
+      - "--config.file=/prometheus/alertmanager.yml"
+      - "--storage.path=/data"
+    ports:
+      - 9093:9093
+    networks:
+      - prometheus_network
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node_exporter_monitoring
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--path.rootfs=/rootfs" # Necessary for collecting host filesystem metrics
+      - "--collector.filesystem.ignored-mount-points='^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)'"
+    expose:
+      - "9100"
+    ports:
+      - "9100:9100"
+    networks:
+      - prometheus_network
+
+  cadvisor:
+    # image: braingamer/cadvisor-arm:latest
+    image: budry/cadvisor-arm:latest
+    container_name: cadvisor_monitoring
+    privileged: true
+    ports:
+      - 8080:8080
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    devices:
+      - /dev/kmsg
+    networks:
+      - prometheus_network
+
+  grafana:
+    image: grafana/grafana
+    privileged: true
+    container_name: grafana_monitoring
+    volumes:
+      - ./grafana_data:/var/lib/grafana:z
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    user: "1000"
+    networks:
+      - prometheus_network
+
+  #postgres-exporter:
+  #    image: wrouesnel/postgres_exporter:v0.8.0
+  #    container_name: postgre_exporter
+  #    restart: always
+  #    environment:
+  #    - DATA_SOURCE_NAME=postgres://postgres:root123@host.docker.internal:5432/?sslmode=disable
+  #    # - DATA_SOURCE_NAME="postgres%3A%2F%2Fpostgres%3Aroot123%40host.docker.internal%3A5432%2FDemo%3Fsslmode%3Ddisable"
+  #    - POSTGRES_USER=postgres
+  #    - POSTGRES_PASS=root123
+  #    ports:
+  #    - "9187:9187"
+  #    networks:
+  #    - prometheus_network
+
+  # blackbox_exporter:
+  #   image: prom/blackbox-exporter
+  #   container_name: blackbox_exporter_monitoring
+  #   expose:
+  #     - 9115
+  #   ports:
+  #     - "9115:9115"
+  #   volumes:
+  #     - "./config:/config"
+  #   command: "--config.file=/config/blackbox.yml"
+  #   extra_hosts:
+  #     - "host.docker.internal:127.0.0.1"
+  #   networks:
+  #     - prometheus_network
+
+networks:
+  prometheus_network:
+    driver: bridge

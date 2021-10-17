@@ -1,0 +1,87 @@
+global:
+  scrape_interval: 5s
+  external_labels:
+    monitor: "hr-monitor"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - "172.17.0.1:9093"
+
+rule_files:
+  - alert.rules.yml
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"] #172.17.0.1:9090
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: ".*"
+        target_label: instance
+        replacement: "prometheus"
+
+  # - job_name: "flask-app-metrics"
+  #   scrape_interval: 5s
+  #   static_configs:
+  #     - targets: ["172.17.0.1:5050"]
+  #   relabel_configs:
+  #     - source_labels: [__address__]
+  #       regex: ".*"
+  #       target_label: instance
+  #       replacement: "flask-app"
+
+  - job_name: "node_exporter"
+    scrape_interval: 5s
+    static_configs:
+      - targets: ["172.17.0.1:9100"]
+      - labels:
+          name: "node_exporter"
+
+  - job_name: "grafana"
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+          - "172.17.0.1:3000"
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: ".*"
+        target_label: instance
+        replacement: "grafana"
+
+  # - job_name: "Neo4j-prometheus"
+  #   # scrape_interval: 5s
+  #   static_configs:
+  #     - targets: ["host.docker.internal:2004"]
+
+  # - job_name: "postgre-exporter"
+  #   # scrape_interval: 5s
+  #   static_configs:
+  #     - targets: ["host.docker.internal:9187"]
+
+  - job_name: "blackbox"
+    metrics_path: /probe
+    scrape_interval: 5s
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - "https://wieweber.de"
+
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: (.*)(:80)?
+        target_label: __param_target
+      - source_labels: [__param_target]
+        regex: (.*)
+        target_label: instance
+        replacement: ${1}
+      - target_label: __address__
+        replacement: 192.168.2.112:9115 # blackbox exporters real hostname:port
+
+  - job_name: cadvisor
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+          - cadvisor:8080

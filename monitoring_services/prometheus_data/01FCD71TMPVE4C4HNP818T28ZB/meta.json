@@ -1,0 +1,17 @@
+{
+	"ulid": "01FCD71TMPVE4C4HNP818T28ZB",
+	"minTime": 1628225412178,
+	"maxTime": 1628229600000,
+	"stats": {
+		"numSamples": 765060,
+		"numSeries": 6964,
+		"numChunks": 6964
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01FCD71TMPVE4C4HNP818T28ZB"
+		]
+	},
+	"version": 1
+}

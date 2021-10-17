@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  blackbox_exporter:
+    image: prom/blackbox-exporter
+    container_name: blackbox_exporter
+    expose:
+      - 9115
+    ports:
+      - "9115:9115"
+    extra_hosts:
+      - "host.docker.internal:192.168.2.112"
+    volumes:
+      - "./config:/config"
+    command: "--config.file=/config/blackbox.yml"
+
+networks:
+  monitoring_services_prometheus_network:
+    driver: bridge

@@ -1,0 +1,75 @@
+route:
+  # When a new group of alerts is created by an incoming alert, wait at duration
+  # of 'group_wait' to send the initial notification.
+  # This ensures that multiple alerts for the same group that start
+  # firing shortly after another are batched together on the first
+  # notification.
+  group_wait: 10s
+
+  # When the first notification was sent, wait 'group_interval' to send a batch
+  # of new alerts that started firing for that group.
+  group_interval: 5m
+
+  # If an alert has successfully been sent, wait 'repeat_interval' to
+  # resend them.
+  repeat_interval: 20m
+
+  # A default receiver (not implemented so far)
+  receiver: "email-level1"
+
+  # All the above attributes are inherited by all child routes and can
+  # overwritten on each.
+  routes:
+    - receiver: "email-level2"
+      group_wait: 10s
+      match_re:
+        severity: low|medium|high|critical
+        level: level2
+      continue: true
+
+    - receiver: "email-level3"
+      group_wait: 10s
+      match_re:
+        severity: high|critical
+        level: level3
+      continue: true
+
+    # - receiver: "email-level4"
+    #   group_wait: 10s
+    #   match_re:
+    #     severity: critical
+    #     level: level4
+    #   continue: true
+
+receivers:
+  # TODO: update receivers
+  - name: "email-level1"
+    email_configs:
+      - to: "andreas_silvius.weber@daimler.com"
+        from: "Andreas.Silvius.Weber@gmail.com"
+        smarthost: smtp.gmail.com:587
+        auth_username: Andreas.Silvius.Weber@gmail.com
+        # auth_password: ${DAIMLER_EMAIL_PW}
+        auth_identity: Andreas.Silvius.Weber@gmail.com
+        send_resolved: true
+
+  - name: "email-level2"
+    email_configs:
+      - to: "andreas_silvius.weber@daimler.com"
+        from: "Andreas.Silvius.Weber@gmail.com"
+        smarthost: smtp.gmail.com:587
+        auth_username: Andreas.Silvius.Weber@gmail.com
+        # auth_password: ${DAIMLER_EMAIL_PW}
+        auth_identity: Andreas.Silvius.Weber@gmail.com
+        send_resolved: true
+
+  - name: "email-level3"
+    email_configs:
+      - to: "Andreas.S.Weber@outlook.com"
+        from: "Andreas.Silvius.Weber@gmail.com"
+        smarthost: smtp.gmail.com:587
+        auth_username: Andreas.Silvius.Weber@gmail.com
+         # auth_password: ${DAIMLER_EMAIL_PW}
+        auth_identity: Andreas.Silvius.Weber@gmail.com
+        send_resolved: true
+  # TODO: email-level4

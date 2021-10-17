@@ -1,0 +1,5 @@
+Flask
+prometheus_client
+docker
+loguru
+six
