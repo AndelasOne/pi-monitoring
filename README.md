@@ -14,9 +14,6 @@
 5. Visualize with Grafana
 6. Alerting through Prometheus Alertmanager
 
-## Monitoring System and Server Landscape
-<img src="./res/monitoring_architecture.png" width="600">
-
 ## Build and Run Monitoring System (local)
 
 1. cd into folder "monitoring_services""
